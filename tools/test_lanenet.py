@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
+import sys
+sys.path.append("/home/adharsh/repos/perception-contract-expts/perception/lanenet-lane-detection")
 from lanenet_model import lanenet
 from lanenet_model import lanenet_postprocess
 from local_utils.config_utils import parse_config_utils
