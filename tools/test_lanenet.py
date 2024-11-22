@@ -16,10 +16,10 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.saved_model import builder as saved_model_builder
 
+import os
 import sys
-sys.path.append("/home/adharsh/repos/perception-contract-expts/perception/lanenet-lane-detection")
+sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from lanenet_model import lanenet
 from lanenet_model import lanenet_postprocess
 from local_utils.config_utils import parse_config_utils
