@@ -581,7 +581,7 @@ class _GuidedAggregation(cnn_basenet.CNNBaseModel):
                     use_bias=False,
                     need_activate=False
                 )
-                semantic_branch_upsample = tf.image.resize_bilinear(
+                semantic_branch_upsample = tf.compat.v1.image.resize_bilinear(
                     semantic_branch_upsample,
                     detail_input_tensor.shape[1:3],
                     name='semantic_upsample_features'
@@ -599,7 +599,7 @@ class _GuidedAggregation(cnn_basenet.CNNBaseModel):
                     semantic_branch_remain,
                     name='guided_semantic_features'
                 )
-                guided_features_upsample = tf.image.resize_bilinear(
+                guided_features_upsample = tf.compat.v1.image.resize_bilinear(
                     guided_features_downsample,
                     detail_input_tensor.shape[1:3],
                     name='guided_upsample_features'
@@ -845,9 +845,9 @@ class BiseNetV2(cnn_basenet.CNNBaseModel):
         :return:
         """
         result = input_tensor
-        with tf.variable_scope(name_or_scope=name):
+        with tf.compat.v1.variable_scope(name_or_scope=name):
             for stage_name, stage_params in self._detail_branch_channels.items():
-                with tf.variable_scope(stage_name):
+                with tf.compat.v1.variable_scope(stage_name):
                     for block_index, param in enumerate(stage_params):
                         block_op = self._block_maps[param[0]]
                         k_size = param[1]
@@ -855,7 +855,7 @@ class BiseNetV2(cnn_basenet.CNNBaseModel):
                         stride = param[3]
                         repeat_times = param[4]
                         for repeat_index in range(repeat_times):
-                            with tf.variable_scope(name_or_scope='conv_block_{:d}_repeat_{:d}'.format(
+                            with tf.compat.v1.variable_scope(name_or_scope='conv_block_{:d}_repeat_{:d}'.format(
                                     block_index + 1, repeat_index + 1)):
                                 if stage_name == 'stage_3' and block_index == 1 and repeat_index == 1:
                                     result = block_op(
@@ -1048,7 +1048,7 @@ class BiseNetV2(cnn_basenet.CNNBaseModel):
         :param reuse:
         :return:
         """
-        with tf.variable_scope(name_or_scope=name, reuse=reuse):
+        with tf.compat.v1.variable_scope(name_or_scope=name, reuse=reuse):
             # build detail branch
             detail_branch_output = self.build_detail_branch(
                 input_tensor=input_tensor,

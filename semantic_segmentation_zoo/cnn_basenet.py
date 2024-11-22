@@ -67,7 +67,7 @@ class CNNBaseModel(object):
             if b_init is None:
                 b_init = tf.constant_initializer()
 
-            w = tf.get_variable('W', filter_shape, initializer=w_init)
+            w = tf.compat.v1.get_variable('W', filter_shape, initializer=w_init)
             b = None
 
             if use_bias:
@@ -108,7 +108,7 @@ class CNNBaseModel(object):
             depthwise_filter_shape = [kernel_size, kernel_size] + [in_channel, depth_multiplier]
             w_init = tf.contrib.layers.variance_scaling_initializer()
 
-            depthwise_filter = tf.get_variable(
+            depthwise_filter = tf.compat.v1.get_variable(
                 name='depthwise_filter_w', shape=depthwise_filter_shape,
                 initializer=w_init
             )

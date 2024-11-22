@@ -16,6 +16,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.saved_model import builder as saved_model_builder
 
 import sys
 sys.path.append("/home/adharsh/repos/perception-contract-expts/perception/lanenet-lane-detection")
@@ -70,7 +71,7 @@ def minmax_scale(input_arr):
     return output_arr
 
 
-def test_lanenet(image_path, weights_path, with_lane_fit=True):
+def test_lanenet(image_path, weights_path, with_lane_fit=True, use_gpu=False):
     """
 
     :param image_path:
@@ -88,7 +89,7 @@ def test_lanenet(image_path, weights_path, with_lane_fit=True):
     image = image / 127.5 - 1.0
     LOG.info('Image load complete, cost time: {:.5f}s'.format(time.time() - t_start))
 
-    input_tensor = tf.placeholder(dtype=tf.float32, shape=[1, 256, 512, 3], name='input_tensor')
+    input_tensor = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, 256, 512, 3], name='input_tensor')
 
     net = lanenet.LaneNet(phase='test', cfg=CFG)
     binary_seg_ret, instance_seg_ret = net.inference(input_tensor=input_tensor, name='LaneNet')
@@ -96,12 +97,20 @@ def test_lanenet(image_path, weights_path, with_lane_fit=True):
     postprocessor = lanenet_postprocess.LaneNetPostProcessor(cfg=CFG)
 
     # Set sess configuration
-    sess_config = tf.ConfigProto()
-    sess_config.gpu_options.per_process_gpu_memory_fraction = CFG.GPU.GPU_MEMORY_FRACTION
-    sess_config.gpu_options.allow_growth = CFG.GPU.TF_ALLOW_GROWTH
-    sess_config.gpu_options.allocator_type = 'BFC'
+    sess_config = tf.compat.v1.ConfigProto(log_device_placement=True)
+    if use_gpu:
+        sess_config = tf.compat.v1.ConfigProto(device_count={'GPU': 1}, log_device_placement=True)
+        sess_config.gpu_options.per_process_gpu_memory_fraction = CFG.GPU.GPU_MEMORY_FRACTION
+        sess_config.gpu_options.allow_growth = CFG.GPU.TF_ALLOW_GROWTH
+        sess_config.gpu_options.allocator_type = 'BFC'
+    else:
+        sess_config = tf.compat.v1.ConfigProto(
+            device_count={'CPU' : 1, 'GPU' : 0},
+            allow_soft_placement=True,
+            log_device_placement=False
+        )
 
-    sess = tf.Session(config=sess_config)
+    sess = tf.compat.v1.Session(config=sess_config)
 
     # define moving average version of the learned variables for eval
     with tf.variable_scope(name_or_scope='moving_avg'):
@@ -124,7 +133,7 @@ def test_lanenet(image_path, weights_path, with_lane_fit=True):
             )
         t_cost = time.time() - t_start
         t_cost /= loop_times
-        LOG.info('Single imgae inference cost time: {:.5f}s'.format(t_cost))
+        LOG.info('Single image inference cost time: {:.5f}s'.format(t_cost))
 
         postprocess_result = postprocessor.postprocess(
             binary_seg_result=binary_seg_image[0],
